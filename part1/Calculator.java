@@ -31,14 +31,14 @@ public class Calculator {
     }
 
     private static int skipWhitespace(int c) throws IOException {
-        while (c == ' ' || c == '\t' || c == '\r') {
+        while (c == ' ' || c == '\t' || c == '\r') {       //as in piazza suggest just skip them
             c = System.in.read();
         }
         return c;
     }
 
     private static void expect(int expected) throws IOException {
-        if (ch == expected) {
+        if (ch == expected) {   //double verify that the character is what we expect
             ch = skipWhitespace(System.in.read());
         } else {
             error("Parse error: Expected '" + (char) expected + "'");
@@ -50,7 +50,7 @@ public class Calculator {
     }
 
     private static int evaluateExpression() throws IOException {
-        int value = parseExponent(); //parse initially  exponentiation
+        int value = parseExponent(); //parse initially exponentiatio
 
         while (ch == '+' || ch == '-') { //addition and subtraction
             int op = ch;
@@ -91,7 +91,7 @@ public class Calculator {
             return val;
         }
 
-        if (Character.isDigit(ch)) {
+        if (Character.isDigit(ch)) { //either its a substrction or addition term either its num term
             return parseNumber(); //handle number parsing
         }
 
