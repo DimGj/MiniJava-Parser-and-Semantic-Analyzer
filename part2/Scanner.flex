@@ -28,9 +28,9 @@ import java_cup.runtime.*;
 */
 
 %{
-    /**
+    /*
         The following two methods create java_cup.runtime.Symbol objects
-    **/
+    */
     private Symbol symbol(int type) {
        return new Symbol(type, yyline, yycolumn);
     }
@@ -58,29 +58,30 @@ EscapeChars    = \"([^\"\\]|\\.)*\"
 <YYINITIAL> {
 
 /* operators */
-"+"            { return symbol(sym.PLUS); }
-"("            { return symbol(sym.LPAREN); }
-")"            { return symbol(sym.RPAREN); }
-";"            { return symbol(sym.SEMI); }
-","            { return symbol(sym.COMMA); }
-"="            { return symbol(sym.EQ); }
-"{"            { return symbol(sym.LBRACE); }
-"}"            { return symbol(sym.RBRACE); }
+    "+"            { return symbol(sym.PLUS); }
+    "("            { return symbol(sym.LPAREN); }
+    ")"            { return symbol(sym.RPAREN); }
+    ";"            { return symbol(sym.SEMI); }
+    ","            { return symbol(sym.COMMA); }
+    "="            { return symbol(sym.EQ); }
+    "{"            { return symbol(sym.LBRACE); }
+    "}"            { return symbol(sym.RBRACE); }
 
-/* keywords */
-"def"          { return symbol(sym.DEF); }
-"if"           { return symbol(sym.IF); }
-"else"         { return symbol(sym.ELSE); }
-"reverse"      { return symbol(sym.REV); }
-"prefix"       { return symbol(sym.PRE); }
-"suffix"       { return symbol(sym.SUF); }
+    /* keywords */
+    "def"          { return symbol(sym.DEF); }
+    "if"           { return symbol(sym.IF); }
+    "else"         { return symbol(sym.ELSE); }
+    "reverse"      { return symbol(sym.REV); }
+    "prefix"       { return symbol(sym.PRE); }
+    "suffix"       { return symbol(sym.SUF); }
 
 
-{Id}           { return symbol(sym.ID, yytext()); }
-{EscapeChars} { return symbol(sym.STRING, yytext()); }
+    {Id}           { return symbol(sym.ID, yytext()); }
+    {EscapeChars} { return symbol(sym.STRING, yytext()); }
 
-{WhiteSpace} { /* just skip what was found, do nothing */ }
+    {WhiteSpace} { /* just skip what was found, do nothing */ }
 
-/* No token was found for the input so through an error.  Print out an
-   Illegal character message with the illegal character that was found. */
-[^]                    { throw new Error("Illegal character <"+yytext()+">"); }
+    /* No token was found for the input so through an error.  Print out an
+    Illegal character message with the illegal character that was found. */
+    [^]                    { throw new Error("Illegal character <"+yytext()+">"); }
+}
