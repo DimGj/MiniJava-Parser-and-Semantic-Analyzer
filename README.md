@@ -1,7 +1,10 @@
 # compilers_project1
 
-
 ~ Part 1 ~
+
+!Execute instructions:  > cd part1
+                        > make all
+                        > make run
 
 In order to eliminate the left recursion as the exercise suggests i refactored the grammar.
 We used this transformation: A → A α | β  to:  A  → β A'
@@ -40,6 +43,10 @@ Furthermore its first and follow sets (starting from digit and  till the complex
         exp2	        {+, -, ε}	       {), $}
 
 ~ Part 2 ~
+
+!Execute instructions:  > cd part2
+                        > make all
+                        > make run
 
 1. I have created a flex file that generates tokens to be processed by our cup file.
 2. Adjusted and extended the cup file based on Example 2 from the lessons (added a method to generate class methods for our IR file).
