@@ -28,9 +28,7 @@ import java_cup.runtime.*;
 */
 
 %{
-    /*
-        The following two methods create java_cup.runtime.Symbol objects
-    */
+    /* The following two methods create java_cup.runtime.Symbol objects */
     private Symbol symbol(int type) {
        return new Symbol(type, yyline, yycolumn);
     }
