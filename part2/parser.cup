@@ -1,10 +1,27 @@
 /* Package and Import Specifications */
 import java_cup.runtime.*;
+import java.io.*;
+import java.util.*;
 
 /* Usercode Components */
 parser code {:
     Scanner s;
+    List<String> irOutput = new ArrayList<>();
     Parser(Scanner s) { this.s = s; }
+    
+    public List<String> getIROutput() {
+        return irOutput;
+    }
+    private void writeIRToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("Translated.ir"))) {
+            for (String line : irOutput) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing IR to file: " + e.getMessage());
+        }
+    }
 :}
 
 /* Connect to the scanner */
@@ -30,7 +47,10 @@ precedence left IF;
 precedence left REV;
 
 /* Grammar rules */
-program ::= func_list expr_list;
+program ::= func_list expr_list
+          {: 
+             writeIRToFile(); 
+          :};
 
 func_list ::= /* empty */
             | func_list function_declaration;
@@ -46,10 +66,16 @@ args ::= /* empty */
 arg_list ::= ID
            | arg_list COMMA ID;
 
-body ::= top_level_expression
-       | body top_level_expression;
+body ::= top_level_expression 
+              {: irOutput.add($top_level_expression); :}
+       | body top_level_expression
+              {: irOutput.add($top_level_expression); :};
 
-top_level_expression ::= expr SEMI {: System.out.println("Top-level expression: " + $expr); :};
+top_level_expression ::= expr SEMI
+       {: 
+          RESULT = $expr;
+          irOutput.add($expr); 
+       :};
 
 expr ::= expr PLUS expr {: RESULT = $expr0 + $expr2; :}
        | REV expr {: RESULT = "reverse(" + $expr + ")"; :}

@@ -41,7 +41,15 @@ Furthermore its first and follow sets (starting from digit and  till the complex
 
 ~ Part 2 ~
 
+1. I have created a flex file that generates tokens to be processed by our cup file.
+2. Adjusted and extended the cup file based on Example 2 from the lessons (added a method to generate class methods for our IR file).
 
+During build the parser.java, sym.java and scanner.java files are generated. Could not test also if they were correct.
+
+Issues Encountered:
+
+a) I encountered an issue where java_cup could not be recognized during the build process.
+b) I was unable to fully understand how to connect the IR output to real-time Java code via a main.java file.
 
 
 
