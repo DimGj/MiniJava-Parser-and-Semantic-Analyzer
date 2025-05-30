@@ -6,7 +6,7 @@ compile:
 	javac Main.java visitor/*.java syntaxtree/*.java symbolTable/*.java
 
 run:
-	java Main tests/test.java
+	java Main tests/mytest1.java
 
 clean:
 	rm -rf *.class *~

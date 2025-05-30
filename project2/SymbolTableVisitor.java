@@ -6,7 +6,7 @@ import symbolTable.*;
 //i dont show the node rules for each override like in demo because i wanted smaller file size
 //but you can find it thrugh my override parameter name
 
-public class myVisitor extends GJDepthFirst<Void, Void> { //took the overriding logic it from myVisitor in project2 demo
+public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the overriding logic it from myVisitor in project2 demo
     public final SymbolTable symbolTable = new SymbolTable();
 
     private String currentClass = null;
@@ -35,6 +35,7 @@ public class myVisitor extends GJDepthFirst<Void, Void> { //took the overriding 
 
     @Override
     public Void visit(ClassDeclaration n, Void arg) {
+        currentMethod = null;
         String className = n.f1.f0.toString();
         boolean added = symbolTable.addClass(className, null);
         if (!added) {
@@ -76,78 +77,83 @@ public class myVisitor extends GJDepthFirst<Void, Void> { //took the overriding 
     
     @Override
     public Void visit(VarDeclaration n, Void arg) {
-        String type = n.f0.accept(typeExtractor, null);
+        String varType = n.f0.accept(typeExtractor, null);
         String varName = n.f1.f0.toString();
 
-        ClassSymbol c = symbolTable.getClass(currentClass);
-        if (currentMethod == null) {
-            boolean ok = c.addField(varName, type);
-            if (!ok) {
-                System.err.println("Error: Duplicate field '" + varName + "' in class " + currentClass);
+        if (currentMethod != null) {
+            //only local variables into methods
+            MethodSymbol method = symbolTable.getClass(currentClass).getMethod(currentMethod);
+            if (method == null) {
+                System.err.println("Error: Could not find method symbol for '" + currentMethod + "' in class '" + currentClass + "'");
+                System.exit(1);
+            }
+            if (!method.addLocal(varName, varType)) {
+                System.err.println("Error: Duplicate local variable '" + varName + "' in method '" + currentMethod + "'");
                 System.exit(1);
             }
         } else {
-            MethodSymbol method = c.getMethod(currentMethod);
-            boolean ok = method.addLocal(varName, type);
-            if (!ok) {
-                System.err.println("Error: Variable '" + varName + "' redeclared in method " + currentMethod);
+            // class fields
+            ClassSymbol c = symbolTable.getClass(currentClass);
+            if (!c.addField(varName, varType)) {
+                System.err.println("Error: Duplicate field '" + varName + "' in class '" + currentClass + "'");
                 System.exit(1);
             }
         }
 
         return null;
     }
+
 
     @Override
     public Void visit(MethodDeclaration n, Void arg) {
         String returnType = n.f1.accept(typeExtractor, null);
         String methodName = n.f2.f0.toString();
 
-        ClassSymbol c = symbolTable.getClass(currentClass);
-        boolean ok = c.addMethod(methodName, returnType);
-        if (!ok) {
-            System.err.println("Error: Duplicate method '" + methodName + "' in class " + currentClass);
+        ClassSymbol cls = symbolTable.getClass(currentClass);
+        boolean added = cls.addMethod(methodName, returnType);
+        if (!added) {
+            System.err.println("Error: Duplicate method '" + methodName + "' in class '" + currentClass + "'");
             System.exit(1);
         }
 
         currentMethod = methodName;
-        MethodSymbol method = c.getMethod(methodName);
+        MethodSymbol method = cls.getMethod(currentMethod);
+        if (method == null) {
+            System.err.println("Error: Could not find method symbol for '" + methodName + "' in class '" + currentClass + "'");
+            System.exit(1);
+        }
 
-        //get args of the method
+        //args
         if (n.f4.present()) {
-            NodeSequence paramList = (NodeSequence) n.f4.node;
-            Node firstParam = paramList.elementAt(0);
-            NodeListOptional tailParams = (NodeListOptional) paramList.elementAt(1);
+            FormalParameterList paramList = (FormalParameterList) n.f4.node;
 
-            NodeSequence paramSeq = (NodeSequence) firstParam;
-            //caution i get the first arg alone becuase of rule: FormalParameterList ::= FormalParameter ( "," FormalParameter )
-            String firstType = paramSeq.elementAt(0).accept(typeExtractor, null);
-
-            String firstName = ((Identifier) paramSeq.elementAt(1)).f0.toString();
-
+            String firstType = paramList.f0.f0.accept(typeExtractor, null); //first parameter type
+            String firstName = paramList.f0.f1.f0.toString();
             if (!method.addParameter(firstName, firstType)) {
-                System.err.println("Error: Duplicate parameter '" + firstName + "' in method " + methodName);
+                System.err.println("Error: Duplicate parameter '" + firstName + "' in method '" + methodName + "'");
                 System.exit(1);
             }
 
-            for (Node tail : tailParams.nodes) { //iterate through the rest of the parameters
-                NodeSequence pair = (NodeSequence) ((NodeSequence) tail).elementAt(1); //problem with comma after each var due to grammar, i skip it
-                String type = pair.elementAt(0).accept(typeExtractor, null);
-                String name = ((Identifier) pair.elementAt(1)).f0.toString();
+            //rest
+            NodeListOptional tail = paramList.f1.f0;
+            for (int i = 0; i < tail.size(); i++) {
+                NodeSequence paramSeq = (NodeSequence) tail.elementAt(i);
+                FormalParameter param = (FormalParameter) paramSeq.elementAt(1);
+                String paramType = param.f0.accept(typeExtractor, null);
+                String paramName = param.f1.f0.toString();
 
-                if (!method.addParameter(name, type)) {
-                    System.err.println("Error: Duplicate parameter '" + name + "' in method " + methodName);
+                if (!method.addParameter(paramName, paramType)) {
+                    System.err.println("Error: Duplicate parameter '" + paramName + "' in method '" + methodName + "'");
                     System.exit(1);
                 }
             }
         }
 
-        for (Node varDecl : n.f7.nodes) {
-            varDecl.accept(this, null);
-        }
-
+        n.f7.accept(this, null); //method body
+        currentMethod = null;
         return null;
     }
+
 
     public class TypeExtractor extends GJDepthFirst<String, Void> { //got the logic from lecture code, i refined it as a helping class
 

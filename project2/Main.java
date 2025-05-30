@@ -17,7 +17,7 @@ public class Main {
                 MiniJavaParser parser = new MiniJavaParser(fis);
                 Goal root = parser.Goal();
 
-                myVisitor visitor = new myVisitor();
+                SymbolTableVisitor visitor = new SymbolTableVisitor();
                 root.accept(visitor, null);
 
                 System.out.println("symbol table built successfully for: " + fileName);
