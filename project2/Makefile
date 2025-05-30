@@ -2,8 +2,11 @@ all: compile
 
 compile:
 	java -jar jtb132.jar minijava.jj
-	java -jar javacc5.jar minijava.jj
-	javac Main.java
+	javacc jtb.out.jj
+	javac Main.java visitor/*.java syntaxtree/*.java symbolTable/*.java
+
+run:
+	java Main tests/test.java
 
 clean:
 	rm -rf *.class *~

@@ -1,0 +1,37 @@
+import syntaxtree.*;
+import symbolTable.*;
+import java.io.*;
+
+public class Main {
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            System.err.println("Usage: java Main <MiniJavaFile.java>");
+            System.exit(1);
+        }
+
+        for (String fileName : args) { //extend it to print also the file name
+            try {
+                System.out.println("processing: " + fileName);
+                FileInputStream fis = new FileInputStream(fileName);
+
+                MiniJavaParser parser = new MiniJavaParser(fis);
+                Goal root = parser.Goal();
+
+                myVisitor visitor = new myVisitor();
+                root.accept(visitor, null);
+
+                System.out.println("symbol table built successfully for: " + fileName);
+            } catch (ParseException e) {
+                System.err.println("parse error in file: " + fileName);
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                System.err.println("File not found: " + fileName);
+            } catch (Exception e) {
+                System.err.println("Error: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+            System.out.println("FINISHED");
+        }
+    }
+}

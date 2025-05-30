@@ -1,4 +1,4 @@
-package project2.symbolTable;
+package symbolTable;
 
 public class VariableSymbol {
     public final String name;

@@ -1,4 +1,4 @@
-package project2.symbolTable;
+package symbolTable;
 import java.util.Map;
 import java.util.LinkedHashMap; //as it was said on piazza @71 
 
