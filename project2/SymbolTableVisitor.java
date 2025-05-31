@@ -2,7 +2,6 @@ import syntaxtree.*;
 import visitor.*;
 import symbolTable.*;
 
-
 //i dont show the node rules for each override like in demo because i wanted smaller file size
 //but you can find it thrugh my override parameter name
 
@@ -104,21 +103,20 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         return null;
     }
 
-
     @Override
     public Void visit(MethodDeclaration n, Void arg) {
         String returnType = n.f1.accept(typeExtractor, null);
         String methodName = n.f2.f0.toString();
 
-        ClassSymbol cls = symbolTable.getClass(currentClass);
-        boolean added = cls.addMethod(methodName, returnType);
+        ClassSymbol c = symbolTable.getClass(currentClass);
+        boolean added = c.addMethod(methodName, returnType);
         if (!added) {
             System.err.println("Error: Duplicate method '" + methodName + "' in class '" + currentClass + "'");
             System.exit(1);
         }
 
         currentMethod = methodName;
-        MethodSymbol method = cls.getMethod(currentMethod);
+        MethodSymbol method = c.getMethod(currentMethod);
         if (method == null) {
             System.err.println("Error: Could not find method symbol for '" + methodName + "' in class '" + currentClass + "'");
             System.exit(1);
@@ -127,30 +125,64 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         //args
         if (n.f4.present()) {
             FormalParameterList paramList = (FormalParameterList) n.f4.node;
+            FormalParameter firstParam = paramList.f0; //first param always present
+            String firstType = firstParam.f0.accept(typeExtractor, null);
+            String firstName = firstParam.f1.f0.toString();
 
-            String firstType = paramList.f0.f0.accept(typeExtractor, null); //first parameter type
-            String firstName = paramList.f0.f1.f0.toString();
             if (!method.addParameter(firstName, firstType)) {
-                System.err.println("Error: Duplicate parameter '" + firstName + "' in method '" + methodName + "'");
+                System.err.printf("Error: Duplicate parameter '%s' in method '%s' of class '%s'.\n", firstName, methodName, currentClass);
                 System.exit(1);
             }
 
             //rest
-            NodeListOptional tail = paramList.f1.f0;
-            for (int i = 0; i < tail.size(); i++) {
-                NodeSequence paramSeq = (NodeSequence) tail.elementAt(i);
-                FormalParameter param = (FormalParameter) paramSeq.elementAt(1);
-                String paramType = param.f0.accept(typeExtractor, null);
-                String paramName = param.f1.f0.toString();
+            NodeListOptional tailParams = paramList.f1.f0;
+            for (Node node : tailParams.nodes) {
+                NodeSequence seq = (NodeSequence) node; //in the element[0] found out commas, it was bug
+                FormalParameter param = (FormalParameter) seq.elementAt(1);
+                String type = param.f0.accept(typeExtractor, null);
+                String name = param.f1.f0.toString();
 
-                if (!method.addParameter(paramName, paramType)) {
-                    System.err.println("Error: Duplicate parameter '" + paramName + "' in method '" + methodName + "'");
+                if (!method.addParameter(name, type)) {
+                    System.err.printf("Error: Duplicate parameter '%s' in method '%s' of class '%s'.\n", name, methodName, currentClass);
                     System.exit(1);
                 }
             }
         }
+        
+        //chcker for proper overriding method
+        String parent = c.parent;
+        while (parent != null) {
+            ClassSymbol parentClass = symbolTable.getClass(parent);
+            if (parentClass.methods.containsKey(methodName)) {
+                MethodSymbol superMethod = parentClass.getMethod(methodName);
 
-        n.f7.accept(this, null); //method body
+                //foo can be defined in a subclass if it has the same return type and argument types (ordered) as in the parent (apo ekfwnisi)
+                if (!superMethod.returnType.equals(returnType) || superMethod.parameters.size() != method.parameters.size()) {
+                    System.err.printf("Error: Method '%s' in class '%s' overloads method in superclass '%s'. Overloading not allowed.\n",methodName, currentClass, parent);
+                    System.exit(1);
+                }
+
+                //check now types of args for both
+                java.util.Iterator<String> parMethod = superMethod.parameters.keySet().iterator(); //ordering is safe because of LinkedHashMap (piazza @71)
+                java.util.Iterator<String> subMethod = method.parameters.keySet().iterator();
+                while (parMethod.hasNext() && subMethod.hasNext()) {
+                    String superParamType = superMethod.parameters.get(parMethod.next()).type;
+                    String subParamType = method.parameters.get(subMethod.next()).type;
+                    if (!superParamType.equals(subParamType)) {
+                        System.err.printf("Error: Method '%s' in class '%s' has parameter type mismatch with superclass method in '%s'.\n",methodName, currentClass, parent);
+                        System.exit(1);
+                    }
+                }
+                break;
+            }
+            parent = parentClass.parent;
+        }
+
+        if (n.f7.present()) 
+            n.f7.accept(this, null); //method body
+        if (n.f8.present()) 
+            n.f8.accept(this, null); //return 
+
         currentMethod = null;
         return null;
     }

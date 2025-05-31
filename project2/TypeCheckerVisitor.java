@@ -208,24 +208,61 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     @Override
     public String visit(MessageSend n, String arg) {
         String objectType = n.f0.accept(this, null);
-
         ClassSymbol c = symbolTable.getClass(objectType);
-        if (c == null) {
+        if (c == null) { //check if the class exists or object was primitive type
             System.err.printf("Error: Type '%s' not found for method call '%s'.\n", objectType, n.f2.f0.toString());
             System.exit(1);
         }
 
-        String methodName = n.f2.f0.toString();
-        MethodSymbol method = c.getMethod(methodName);
+        String methodName = n.f2.f0.toString(); //search for method in class or parent ones
+        MethodSymbol method = null; 
+        ClassSymbol currClass = c;
+        while (currClass != null) {
+            if (currClass.methods.containsKey(methodName)) { //base case: method found in curr class
+                method = currClass.methods.get(methodName);
+                break;
+            }
+            if (currClass.parent == null) //base case: no further parent
+                break;
+            currClass = symbolTable.getClass(currClass.parent); //continue recursion (get to next parent)
+        }
         if (method == null) {
             System.err.printf("Error: Method '%s' not found in class '%s'.\n", methodName, objectType);
             System.exit(1);
         }
 
-        //TODO: need to arg check also how many and what type is returned
+        int expectedargNum = method.parameters.size(); //i compare now the numbers and types of args
+        int actualArgNum = 0;
+        if (n.f4.present()) {
+            ExpressionList expr = (ExpressionList) n.f4.node;
+            java.util.List<String> actualArgs = getArgTypes(expr); //get what arg types were passed
+            actualArgNum = actualArgs.size(); //and how many
+
+            if (actualArgNum != expectedargNum) {
+                System.err.printf("Error: Method '%s' in class '%s' expects %d arguments but got %d (on class '%s').\n",methodName, objectType, expectedargNum, actualArgNum, currentClass);
+                System.exit(1);
+            }
+
+            //type checking of each argument
+            int k = 0; 
+            for (String currName : method.parameters.keySet()) { //method.param store order thanks to LinkedHashMap that i did it earlier
+                String expectedType = method.parameters.get(currName).type; //get the type from the declaration
+                String actualType = actualArgs.get(k); //get the type from the symbolType from frist pass
+                if (!isAssignable(expectedType, actualType)) {
+                    System.err.printf("Error: Argument %d of method '%s' expects '%s' but got '%s' (on class '%s').\n", k + 1, methodName, expectedType, actualType, currentClass );
+                    System.exit(1);
+                }
+                k++;
+            }
+        } else if (expectedargNum > 0) { //in case of 0 args but method expects some
+            System.err.printf("Error: Method '%s' in class '%s' expects %d arguments but got none.\n",methodName, objectType, expectedargNum);
+            System.exit(1);
+        }
 
         return method.returnType;
     }
+
+    //helping functions
 
     private String resolveVariableType(String varName) {
         ClassSymbol c = symbolTable.getClass(currentClass);
@@ -248,9 +285,42 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
             parent = parentClass.parent;
         }
 
-        System.err.printf("Error: Variable '%s' not found in scope of method '%s' in class '%s'.\n",
-                varName, currentMethod, currentClass);
+        System.err.printf("Error: Variable '%s' not found in scope of method '%s' in class '%s'.\n",varName, currentMethod, currentClass);
         System.exit(1);
         return null;
+    }
+
+    private java.util.List<String> getArgTypes(ExpressionList expr) {
+        java.util.List<String> types = new java.util.ArrayList<>(); //i store them in a list
+
+        Expression first = (Expression) expr.f0; //first separately extracted due to grammar rule
+        types.add(first.accept(this, null));
+
+        NodeListOptional tail = (NodeListOptional) expr.f1.f0;
+        if (tail.present()){
+            for (Node node : tail.nodes) { //rest are in optional nodes
+                NodeSequence pair = (NodeSequence) node; //i saw that are like key values (',' expr)
+                Expression e = (Expression) pair.elementAt(1); //bugged with element[0] (was comma), element[1] found is the data type
+                types.add(e.accept(this, null));
+            }
+        }
+
+        return types;
+    }
+
+    private boolean isAssignable(String to, String from) {
+        if (to.equals(from)) //same type
+            return true;
+
+        if (from.equals("null") && !to.equals("int") && !to.equals("boolean")) //int and boolean cannot get null value ()
+            return true;
+
+        ClassSymbol fromClass = symbolTable.getClass(from);
+        while (fromClass != null && fromClass.parent != null) { //check inheritance
+            if (fromClass.parent.equals(to)) //acceptable parent
+                return true;
+            fromClass = symbolTable.getClass(fromClass.parent); //conitnue to next parent
+        }
+        return false;
     }
 }
