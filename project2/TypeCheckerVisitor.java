@@ -165,6 +165,7 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     @Override
     public String visit(AllocationExpression n, String arg) {
         return n.f1.f0.toString(); 
+        return n.f1.accept(this, "type");
     }
 
     @Override
@@ -262,7 +263,24 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
         return method.returnType;
     }
 
-    //helping functions
+    @Override
+    public String visit(PrintStatement n, String arg) {
+        String exprType = n.f2.accept(this, "print");
+
+        if (exprType == null) {
+            System.err.println("Error: Expression in print statement could not be resolved.");
+            System.exit(1);
+        }
+
+        if (!exprType.equals("int") && !exprType.equals("boolean")) {
+            System.err.printf("Error: Cannot print expression of type '%s'. Only 'int' and 'boolean' are allowed.\n", exprType);
+            System.exit(1);
+        }
+
+        return null;
+    }
+
+    //-------------------------------------------------------helping functions------------------------------------------------------------
 
     private String resolveVariableType(String varName) {
         ClassSymbol c = symbolTable.getClass(currentClass);
