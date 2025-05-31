@@ -29,6 +29,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         MethodSymbol mainMethod = cls.getMethod("main");
         mainMethod.addParameter(n.f11.f0.toString(), "String[]");
         currentMethod = "main";
+        n.f14.accept(this, null);
         n.f15.accept(this, null);
         return null;
     }
@@ -181,5 +182,11 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         public String visit(Identifier n, Void argu) {
             return n.f0.toString();
         }
+
+        @Override
+        public String visit(Type n, Void arg) {
+            return n.f0.accept(this, null); //find the actualy type node
+        }
+        
     }
 }

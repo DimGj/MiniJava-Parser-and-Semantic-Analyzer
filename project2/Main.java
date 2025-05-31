@@ -19,8 +19,12 @@ public class Main {
 
                 SymbolTableVisitor visitor = new SymbolTableVisitor();
                 root.accept(visitor, null);
-
                 System.out.println("symbol table built successfully for: " + fileName);
+
+                TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(visitor.symbolTable);
+                root.accept(typeChecker, null);
+                System.out.println("type checking completed for: " + fileName);
+                
             } catch (ParseException e) {
                 System.err.println("parse error in file: " + fileName);
                 e.printStackTrace();
