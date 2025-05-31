@@ -52,6 +52,18 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     }
 
     @Override
+    public String visit(NotExpression n, String arg) {
+        String exprType = n.f1.accept(this, null);
+
+        if (!exprType.equals("boolean")) {
+            System.err.printf("Error: Operand of '!' must be boolean, got '%s' (in class '%s', method '%s').\n",exprType, currentClass, currentMethod);
+            System.exit(1);
+        }
+
+        return "boolean";
+    }
+
+    @Override
     public String visit(CompareExpression n, String arg) {
         String left = n.f0.accept(this, null);
         String right = n.f2.accept(this, null);

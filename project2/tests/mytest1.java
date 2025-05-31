@@ -6,18 +6,15 @@ class mytest1 {
 
 }
 
-class A {
-    int a;
-    boolean b;
-
-    public int getNum() {
-        int x;
-        x = 5;
-        return x;
-    }
-
-    public boolean check(boolean flag) {
-        return flag;
+class Test {
+    public int start() {
+        boolean flag;
+        flag = true;
+        if (!flag) {
+            System.out.println(0);
+        } else {
+            System.out.println(1);
+        }
+        return 0;
     }
 }
-
