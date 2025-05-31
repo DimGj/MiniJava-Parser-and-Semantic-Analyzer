@@ -40,27 +40,70 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
 
     @Override
     public String visit(AndExpression n, String arg) {
-        return n.f0.accept(this, arg);
+        String left = n.f0.accept(this, null);
+        String right = n.f2.accept(this, null);
+
+        if (!left.equals("boolean") || !right.equals("boolean")) {
+            System.err.printf("Error: Invalid operand types for '&&' in class '%s', method '%s'. Got '%s' and '%s'.\n",
+                currentClass, currentMethod, left, right);
+            System.exit(1);
+        }
+        return "boolean";
     }
 
     @Override
     public String visit(CompareExpression n, String arg) {
-        return n.f0.accept(this, arg);
+        String left = n.f0.accept(this, null);
+        String right = n.f2.accept(this, null);
+
+        if (!left.equals("int") || !right.equals("int")) { //i dont think anything else should be compared instead of int
+            System.err.printf("Error: Invalid operand types for '<' in class '%s', method '%s'.\n", currentClass, currentMethod);
+            System.exit(1);
+        }
+
+        return "boolean";
     }
 
     @Override
     public String visit(PlusExpression n, String arg) {
-        return n.f0.accept(this, arg);
+        String left = n.f0.accept(this, null);
+        String right = n.f2.accept(this, null);
+
+        if (!left.equals("int") || !right.equals("int")) {
+            System.err.printf("Error: Invalid operand types for '+' in class '%s', method '%s'. Got '%s' and '%s'.\n",
+                currentClass, currentMethod, left, right);
+            System.exit(1);
+        }
+
+        return "int";
     }
 
     @Override
     public String visit(MinusExpression n, String arg) {
-        return n.f0.accept(this, arg);
+        String left = n.f0.accept(this, null);
+        String right = n.f2.accept(this, null);
+
+        if (!left.equals("int") || !right.equals("int")) {
+            System.err.printf("Error: Invalid operand types for '-' in class '%s', method '%s'. Got '%s' and '%s'.\n",
+                currentClass, currentMethod, left, right);
+            System.exit(1);
+        }
+
+        return "int";
     }
 
     @Override
     public String visit(TimesExpression n, String arg) {
-        return n.f0.accept(this, arg);
+        String left = n.f0.accept(this, null);
+        String right = n.f2.accept(this, null);
+
+        if (!left.equals("int") || !right.equals("int")) {
+            System.err.printf("Error: Invalid operand types for '*' in class '%s', method '%s'. Got '%s' and '%s'.\n",
+                currentClass, currentMethod, left, right);
+            System.exit(1);
+        }
+
+        return "int";
     }
 
     @Override
@@ -278,6 +321,30 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
 
         return null;
     }
+
+    @Override
+    public String visit(IfStatement n, String arg) {
+        String condition = n.f2.accept(this, null);
+        if (!"boolean".equals(condition)) {
+            System.err.printf("Error: Condition in 'if' statement must be boolean, got '%s' (in class '%s', method '%s').\n", condition, currentClass, currentMethod);
+            System.exit(1);
+        }
+        n.f4.accept(this, null); //true code
+        n.f6.accept(this, null); //flase code (always present)
+        return null;
+    }
+
+    @Override
+    public String visit(WhileStatement n, String arg) {
+        String condition = n.f2.accept(this, null);
+        if (!"boolean".equals(condition)) {
+            System.err.printf("Error: Condition in 'while' statement must be boolean, got '%s' (in class '%s', method '%s').\n", condition, currentClass, currentMethod);
+            System.exit(1);
+        }
+        n.f4.accept(this, null); //body
+        return null;
+    }
+
 
     //-------------------------------------------------------helping functions------------------------------------------------------------
 
