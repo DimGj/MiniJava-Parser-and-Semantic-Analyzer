@@ -164,7 +164,6 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
 
     @Override
     public String visit(AllocationExpression n, String arg) {
-        return n.f1.f0.toString(); 
         return n.f1.accept(this, "type");
     }
 
