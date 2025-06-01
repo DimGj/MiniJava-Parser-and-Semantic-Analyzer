@@ -81,7 +81,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
     @Override
     public Void visit(VarDeclaration n, Void arg) {
         String varType = n.f0.accept(typeExtractor, null);
-        //checkIllegalMainClassType(varType);
+        checkIllegalMainClassType(varType);
         String varName = n.f1.f0.toString();
 
         if (!isValidType(varType)) {
@@ -115,7 +115,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
     @Override
     public Void visit(MethodDeclaration n, Void arg) {
         String returnType = n.f1.accept(typeExtractor, null);
-        //checkIllegalMainClassType(returnType);
+        checkIllegalMainClassType(returnType);
         String methodName = n.f2.f0.toString();
 
         if (!isValidType(returnType)) {
@@ -142,7 +142,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
             FormalParameterList paramList = (FormalParameterList) n.f4.node;
             FormalParameter firstParam = paramList.f0; //first param always present
             String firstType = firstParam.f0.accept(typeExtractor, null);
-            //checkIllegalMainClassType(firstType);
+            checkIllegalMainClassType(firstType);
             String firstName = firstParam.f1.f0.toString();
 
             if (!method.addParameter(firstName, firstType)) {
@@ -157,7 +157,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
                 FormalParameter param = term.f1;
 
                 String type = param.f0.accept(typeExtractor, null);
-                //checkIllegalMainClassType(type);
+                checkIllegalMainClassType(type);
                 String name = param.f1.f0.toString();
                 if (!method.addParameter(name, type)) {
                     System.err.printf("Error: Duplicate parameter '%s' in method '%s' of class '%s'.\n", name, methodName, currentClass);
