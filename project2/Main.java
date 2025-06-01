@@ -26,7 +26,7 @@ public class Main {
 
                 TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(visitor.symbolTable);
                 root.accept(typeChecker, null);
-                System.out.println("type checking completed for: " + fileName);
+                System.out.println("Type checking completed for: " + fileName);
                 
             } catch (ParseException e) {
                 System.err.println("Parse error in file: " + fileName);

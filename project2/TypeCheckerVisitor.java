@@ -293,10 +293,8 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
         String actualReturnType = n.f10.accept(this, null);    // actual return expression
 
         String expectedReturnType = symbolTable.getClass(currentClass).getMethod(currentMethod).returnType;
-        if (!expectedReturnType.equals(actualReturnType)) {
-            System.err.printf(
-                "Error: Return type mismatch in method '%s' of class '%s'. Expected '%s' but got '%s'.\n",currentMethod, currentClass, expectedReturnType, actualReturnType
-            );
+        if (!isAssignable(expectedReturnType, actualReturnType)) {
+            System.err.printf("Error: Return type mismatch in method '%s' of class '%s'. Expected '%s' but got '%s'.\n",currentMethod, currentClass, expectedReturnType, actualReturnType);
             System.exit(1);
         }
 
@@ -345,8 +343,9 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
         String varType = resolveVariableType(varName);
         String exprType = n.f2.accept(this, null);
 
-        if (!varType.equals(exprType)) {
-            System.err.printf("Error: Cannot assign '%s' to variable '%s' of type '%s' in method '%s'.\n",exprType, varName, varType, currentMethod);
+        if (!isAssignable(varType, exprType)) {
+            System.err.printf("Error: Cannot assign '%s' to variable '%s' of type '%s' in method '%s'.\n",
+                exprType, varName, varType, currentMethod);
             System.exit(1);
         }
         return null;
@@ -495,18 +494,20 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     }
 
     private boolean isAssignable(String to, String from) {
-        if (to.equals(from)) //same type
+
+        if (to.equals(from)) 
+            return true;
+        if (from.equals("null") && !to.equals("int") && !to.equals("boolean")) 
             return true;
 
-        if (from.equals("null") && !to.equals("int") && !to.equals("boolean")) //int and boolean cannot get null value ()
-            return true;
-
-        ClassSymbol fromClass = symbolTable.getClass(from);
-        while (fromClass != null && fromClass.parent != null) { //check inheritance
-            if (fromClass.parent.equals(to)) //acceptable parent
+        ClassSymbol current = symbolTable.getClass(from);
+        while (current != null) {
+            if (current.name.equals(to)) 
                 return true;
-            fromClass = symbolTable.getClass(fromClass.parent); //conitnue to next parent
+            current = symbolTable.getClass(current.parent);
         }
+
         return false;
     }
+
 }
