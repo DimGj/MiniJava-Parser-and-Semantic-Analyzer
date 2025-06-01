@@ -8,6 +8,6 @@ class A extends B {
     int hi;
 }
 
-class B extends A {  //error: circular inheritance
+class B extends A {  //error:circular inheritance
     int hey;
 }

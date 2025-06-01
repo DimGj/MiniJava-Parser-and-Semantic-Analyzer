@@ -30,6 +30,9 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         currentMethod = "main";
         n.f14.accept(this, null);
         n.f15.accept(this, null);
+        
+        currentMethod = null;
+        currentClass = null;
         return null;
     }
 

@@ -300,6 +300,7 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
             System.exit(1);
         }
 
+        currentMethod = null;
         return null;
     }
 

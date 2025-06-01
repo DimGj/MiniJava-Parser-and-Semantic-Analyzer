@@ -1,6 +1,8 @@
 package symbolTable;
 import java.util.Map;
 import java.util.LinkedHashMap; //as it was said on piazza @71 
+import java.util.HashSet;
+import java.util.Set;
 
 public class SymbolTable {
 
@@ -25,5 +27,23 @@ public class SymbolTable {
 
     public Map<String, ClassSymbol> getClasses() { //returns all classes
         return classes;
+    }
+
+    public void checkForInheritanceCycles() {
+        for (String className : classes.keySet()) {
+            Set<String> visited = new HashSet<>();
+            String curr = className;
+
+            while (curr != null) {
+                if (visited.contains(curr)) {
+                    System.err.printf("Error: Circular inheritance detected involving class '%s'\n", className);
+                    System.exit(1);
+                }
+                visited.add(curr);
+                ClassSymbol c = classes.get(curr);
+                if (c == null) break;
+                curr = c.parent;
+            }
+        }
     }
 }
