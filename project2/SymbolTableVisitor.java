@@ -81,6 +81,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
     @Override
     public Void visit(VarDeclaration n, Void arg) {
         String varType = n.f0.accept(typeExtractor, null);
+        checkIllegalMainClassType(varType);
         String varName = n.f1.f0.toString();
 
         if (!isValidType(varType)) {
@@ -114,6 +115,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
     @Override
     public Void visit(MethodDeclaration n, Void arg) {
         String returnType = n.f1.accept(typeExtractor, null);
+        checkIllegalMainClassType(returnType);
         String methodName = n.f2.f0.toString();
 
         if (!isValidType(returnType)) {
@@ -140,6 +142,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
             FormalParameterList paramList = (FormalParameterList) n.f4.node;
             FormalParameter firstParam = paramList.f0; //first param always present
             String firstType = firstParam.f0.accept(typeExtractor, null);
+            checkIllegalMainClassType(firstType);
             String firstName = firstParam.f1.f0.toString();
 
             if (!method.addParameter(firstName, firstType)) {
@@ -154,6 +157,7 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
                 FormalParameter param = term.f1;
 
                 String type = param.f0.accept(typeExtractor, null);
+                checkIllegalMainClassType(type);
                 String name = param.f1.f0.toString();
                 if (!method.addParameter(name, type)) {
                     System.err.printf("Error: Duplicate parameter '%s' in method '%s' of class '%s'.\n", name, methodName, currentClass);
@@ -241,8 +245,15 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         
     }
 
-    //helping function to check also if classType exists in symbol table on extractions (form edge case myError3.java ) 
+    //helping function to check also if classType exists in symbol table on extractions and mainClass not used as type (form edge case myError3.java and myError4.java) ) 
     private boolean isValidType(String type) {
         return type.equals("int") || type.equals("boolean") || type.equals("int[]") || type.equals("boolean[]") || symbolTable.containsClass(type);
     }
+
+    private void checkIllegalMainClassType(String type) {
+    if ("MainClass".equals(type)) {
+        System.err.println("Error: Illegal use of 'MainClass' as a type.");
+        System.exit(1);
+    }
+}
 }
