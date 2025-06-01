@@ -22,6 +22,8 @@ public class Main {
 
                 visitor.symbolTable.checkForInheritanceCycles(); //check of inheritance cycles
 
+                visitor.symbolTable.validateTypes();
+
                 TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(visitor.symbolTable);
                 root.accept(typeChecker, null);
                 System.out.println("type checking completed for: " + fileName);

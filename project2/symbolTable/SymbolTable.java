@@ -46,4 +46,35 @@ public class SymbolTable {
             }
         }
     }
+
+    public void validateTypes() {
+        for (ClassSymbol c : classes.values()) {
+            for (VariableSymbol field : c.fields.values()) {
+                checkValidType(field.type, "field '" + field.name + "' in class '" + c.name + "'");
+            }
+            for (MethodSymbol method : c.methods.values()) {
+                checkValidType(method.returnType, "return type of method '" + method.name + "' in class '" + c.name + "'");
+                for (VariableSymbol param : method.parameters.values()) {
+                    checkValidType(param.type, "parameter '" + param.name + "' in method '" + method.name + "' of class '" + c.name + "'");
+                }
+                for (VariableSymbol local : method.locals.values()) {
+                    checkValidType(local.type, "local variable '" + local.name + "' in method '" + method.name + "' of class '" + c.name + "'");
+                }
+            }
+        }
+    }
+
+    private void checkValidType(String type, String context) {
+        if (type.equals("int") || type.equals("boolean") || type.equals("int[]") || type.equals("boolean[]") || type.equals("String[]") || type.equals("void")) 
+            return;
+        if (type.equals("MainClass")) {
+            System.err.println("Error: Illegal use of 'MainClass' as a type (" + context + ")");
+            System.exit(1);
+        }
+        if (!classes.containsKey(type)) {
+            System.err.println("Error: Type '" + type + "' is undefined (" + context + ")");
+            System.exit(1);
+        }
+    }
+
 }
