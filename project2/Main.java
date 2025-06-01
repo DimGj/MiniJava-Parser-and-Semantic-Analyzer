@@ -1,5 +1,4 @@
 import syntaxtree.*;
-import symbolTable.*;
 import java.io.*;
 
 public class Main {

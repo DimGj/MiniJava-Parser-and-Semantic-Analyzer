@@ -120,12 +120,89 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
 
     @Override
     public String visit(ArrayLookup n, String arg) {
-        return n.f0.accept(this, arg); // base array
+        String arrayType = n.f0.accept(this, null);
+        String indexType = n.f2.accept(this, null);
+
+        if (!arrayType.equals("int[]") && !arrayType.equals("boolean[]")) {
+            System.err.printf("Error: Cannot index type '%s'. Only 'int[]' or 'boolean[]' supported (in class '%s', method '%s').\n",arrayType, currentClass, currentMethod);
+            System.exit(1);
+        }
+
+        if (!indexType.equals("int")) {
+            System.err.printf("Error: Index in array access must be 'int', got '%s' (in class '%s', method '%s').\n",indexType, currentClass, currentMethod);
+            System.exit(1);
+        }
+
+        if (arrayType.equals("int[]"))
+            return "int";
+        else
+            return "boolean";
     }
 
     @Override
     public String visit(ArrayLength n, String arg) {
+        String arrayType = n.f0.accept(this, null);
+
+        if (!arrayType.equals("int[]") && !arrayType.equals("boolean[]")) {
+            System.err.printf("Error: .length is only valid on arrays, got '%s' (in class '%s', method '%s').\n",arrayType, currentClass, currentMethod);
+            System.exit(1);
+        }
         return "int";
+    }
+
+    @Override
+    public String visit(ArrayAllocationExpression n, String arg) {
+        return n.f0.accept(this, arg); //2 syntax tree nodes will decide,i just parse here
+    }
+
+    @Override
+    public String visit(BooleanArrayAllocationExpression n, String arg) {
+        String sizeType = n.f3.accept(this, null);
+        if (!sizeType.equals("int")) {
+            System.err.printf("Error: Boolean array size must be 'int', got '%s' (in class '%s', method '%s').\n",sizeType, currentClass, currentMethod);
+            System.exit(1);
+        }
+        return "boolean[]";
+    }
+
+    @Override
+    public String visit(IntegerArrayAllocationExpression n, String arg) {
+        String sizeType = n.f3.accept(this, null);
+        if (!sizeType.equals("int")) {
+            System.err.printf("Error: Integer array size must be 'int', got '%s' (in class '%s', method '%s').\n",sizeType, currentClass, currentMethod);
+            System.exit(1);
+        }
+        return "int[]";
+    }
+
+    @Override
+    public String visit(ArrayAssignmentStatement n, String arg) {
+        String arrName = n.f0.f0.toString();
+        String arrType = resolveVariableType(arrName); //get what type is
+
+        if (!arrType.equals("int[]") && !arrType.equals("boolean[]")) {
+            System.err.printf("Error: Variable '%s' is not an array in method '%s' of class '%s'.\n", arrName, currentMethod, currentClass);
+            System.exit(1);
+        }
+
+        String indexType = n.f2.accept(this, null);
+        if (!indexType.equals("int")) {
+            System.err.printf("Error: Array index must be of type 'int', but got '%s' for array '%s' in method '%s'.\n", indexType, arrName, currentMethod);
+            System.exit(1);
+        }
+
+        String valueType = n.f5.accept(this, null);
+        String expectedType;
+        if (arrType.equals("int[]"))
+            expectedType = "int";
+        else
+            expectedType = "boolean";
+
+        if (!valueType.equals(expectedType)) {
+            System.err.printf("Error: Cannot assign '%s' to element of array '%s' (expected '%s') in method '%s'.\n", valueType, arrName, expectedType, currentMethod);
+            System.exit(1);
+        }
+        return null;
     }
 
     @Override

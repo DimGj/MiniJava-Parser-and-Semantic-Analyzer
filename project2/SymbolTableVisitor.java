@@ -201,12 +201,18 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         }
 
         @Override
-        public String visit(IntegerArrayType n, Void argu) {
+        public String visit(ArrayType n, Void arg) {
+            String baseType = n.f0.accept(this, null); //splits it to IntegerArrayType/BooleanArrayType
+            return baseType;
+        }
+
+        @Override
+        public String visit(IntegerArrayType n, Void arg) {
             return "int[]";
         }
 
         @Override
-        public String visit(BooleanArrayType n, Void argu) {
+        public String visit(BooleanArrayType n, Void arg) {
             return "boolean[]";
         }
 
