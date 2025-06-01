@@ -39,6 +39,11 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     }
 
     @Override
+    public String visit(ThisExpression n, String arg) {
+        return currentClass;
+    }
+
+    @Override
     public String visit(AndExpression n, String arg) {
         String left = n.f0.accept(this, null);
         String right = n.f2.accept(this, null);
@@ -122,9 +127,16 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     public String visit(ArrayLookup n, String arg) {
         String arrayType = n.f0.accept(this, null);
         String indexType = n.f2.accept(this, null);
+        String arrayVarName = null;
+        if (n.f0 instanceof PrimaryExpression) { //i checked the grammar further , i wanted to print in error also which is variable is used for wrong array assignment
+            Node choice = ((PrimaryExpression) n.f0).f0.choice;
+            if (choice instanceof Identifier) {
+                arrayVarName = ((Identifier) choice).f0.toString();
+            }
+        }
 
         if (!arrayType.equals("int[]") && !arrayType.equals("boolean[]")) {
-            System.err.printf("Error: Cannot index type '%s'. Only 'int[]' or 'boolean[]' supported (in class '%s', method '%s').\n",arrayType, currentClass, currentMethod);
+            System.err.printf("Error: Cannot index variable '%s' of type '%s'. Only 'int[]' or 'boolean[]' supported (in class '%s', method '%s').\n",arrayVarName, arrayType, currentClass, currentMethod);
             System.exit(1);
         }
 
@@ -265,13 +277,15 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
         //get params types
         if (n.f4.present()) {
             FormalParameterList paramList = (FormalParameterList) n.f4.node;
-            paramList.f0.f0.accept(this, "type"); //get first param due to grammar
 
-            NodeListOptional tail = paramList.f1.f0; //rest params
-            for (int i = 0; i < tail.size(); i++) {
-                NodeSequence paramSeq = (NodeSequence) tail.elementAt(i);
-                FormalParameter param = (FormalParameter) paramSeq.elementAt(1);
-                param.f0.accept(this, "type");
+            // First param
+            paramList.f0.f0.accept(this, "type");
+
+            // Rest params from FormalParameterTail
+            FormalParameterTail tail = paramList.f1;
+            for (Node node : tail.f0.nodes) {
+                FormalParameterTerm term = (FormalParameterTerm) node;
+                term.f1.f0.accept(this, "type");
             }
         }
 
@@ -466,16 +480,14 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     private java.util.List<String> getArgTypes(ExpressionList expr) {
         java.util.List<String> types = new java.util.ArrayList<>(); //i store them in a list
 
-        Expression first = (Expression) expr.f0; //first separately extracted due to grammar rule
+        Expression first = expr.f0; //first separately extracted due to grammar rule
         types.add(first.accept(this, null));
 
-        NodeListOptional tail = (NodeListOptional) expr.f1.f0;
-        if (tail.present()){
-            for (Node node : tail.nodes) { //rest are in optional nodes
-                NodeSequence pair = (NodeSequence) node; //i saw that are like key values (',' expr)
-                Expression e = (Expression) pair.elementAt(1); //bugged with element[0] (was comma), element[1] found is the data type
-                types.add(e.accept(this, null));
-            }
+        //rest expr
+        for (Node node : expr.f1.f0.nodes) {
+            ExpressionTerm term = (ExpressionTerm) node; //i saw that are like key values (',' expr)
+            Expression e = term.f1;
+            types.add(e.accept(this, null));
         }
 
         return types;

@@ -135,13 +135,13 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
             }
 
             //rest
-            NodeListOptional tailParams = paramList.f1.f0;
-            for (Node node : tailParams.nodes) {
-                NodeSequence seq = (NodeSequence) node; //in the element[0] found out commas, it was bug
-                FormalParameter param = (FormalParameter) seq.elementAt(1);
+            FormalParameterTail tail = paramList.f1;
+            for (Node node : tail.f0.nodes) {
+                FormalParameterTerm term = (FormalParameterTerm) node;
+                FormalParameter param = term.f1;
+
                 String type = param.f0.accept(typeExtractor, null);
                 String name = param.f1.f0.toString();
-
                 if (!method.addParameter(name, type)) {
                     System.err.printf("Error: Duplicate parameter '%s' in method '%s' of class '%s'.\n", name, methodName, currentClass);
                     System.exit(1);

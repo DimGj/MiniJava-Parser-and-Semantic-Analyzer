@@ -10,7 +10,7 @@ public class Main {
 
         for (String fileName : args) { //extend it to print also the file name
             try {
-                System.out.println("processing: " + fileName);
+                System.out.println("Processing: " + fileName);
                 FileInputStream fis = new FileInputStream(fileName);
 
                 MiniJavaParser parser = new MiniJavaParser(fis);
@@ -18,14 +18,14 @@ public class Main {
 
                 SymbolTableVisitor visitor = new SymbolTableVisitor();
                 root.accept(visitor, null);
-                System.out.println("symbol table built successfully for: " + fileName);
+                System.out.println("Symbol table built successfully for: " + fileName);
 
                 TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(visitor.symbolTable);
                 root.accept(typeChecker, null);
                 System.out.println("type checking completed for: " + fileName);
                 
             } catch (ParseException e) {
-                System.err.println("parse error in file: " + fileName);
+                System.err.println("Parse error in file: " + fileName);
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
                 System.err.println("File not found: " + fileName);
