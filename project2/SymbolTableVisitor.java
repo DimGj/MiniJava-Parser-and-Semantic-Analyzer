@@ -83,6 +83,11 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
         String varType = n.f0.accept(typeExtractor, null);
         String varName = n.f1.f0.toString();
 
+        if (!isValidType(varType)) {
+            System.err.printf("Error: Parameter type '%s' for '%s' in method '%s' of class '%s' is undefined.\n",varType, varName, currentMethod, currentClass);
+            System.exit(1);
+        }
+
         if (currentMethod != null) {
             //only local variables into methods
             MethodSymbol method = symbolTable.getClass(currentClass).getMethod(currentMethod);
@@ -110,6 +115,11 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
     public Void visit(MethodDeclaration n, Void arg) {
         String returnType = n.f1.accept(typeExtractor, null);
         String methodName = n.f2.f0.toString();
+
+        if (!isValidType(returnType)) {
+            System.err.printf("Error: Return type '%s' in method '%s' of class '%s' is undefined.\n",returnType, methodName, currentClass);
+            System.exit(1);
+        }
 
         ClassSymbol c = symbolTable.getClass(currentClass);
         boolean added = c.addMethod(methodName, returnType);
@@ -229,5 +239,10 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
             return n.f0.accept(this, null); //find the actualy type node
         }
         
+    }
+
+    //helping function to check also if classType exists in symbol table on extractions (form edge case myError3.java ) 
+    private boolean isValidType(String type) {
+        return type.equals("int") || type.equals("boolean") || type.equals("int[]") || type.equals("boolean[]") || symbolTable.containsClass(type);
     }
 }

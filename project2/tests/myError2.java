@@ -18,5 +18,5 @@ class B extends A{
 class C extends B{
     int c;
 
-    public int get(){return i;}
+    public int get(){return i;} //error
 }
