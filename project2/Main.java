@@ -28,6 +28,10 @@ public class Main {
                 root.accept(typeChecker, null);
                 System.out.println("Type checking completed for: " + fileName);
                 
+                System.out.println("--------------------------------------");
+                offsetPrinter.print(visitor.getSymbolTable());
+                System.out.println("--------------------------------------");
+                
             } catch (ParseException e) {
                 System.err.println("Parse error in file: " + fileName);
                 e.printStackTrace();
@@ -38,7 +42,7 @@ public class Main {
                 e.printStackTrace();
             }
 
-            System.out.println("FINISHED");
+            System.out.println("END");
         }
     }
 }

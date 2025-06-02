@@ -12,6 +12,10 @@ public class SymbolTableVisitor extends GJDepthFirst<Void, Void> { //took the ov
     private String currentMethod = null;
     private final TypeExtractor typeExtractor = new TypeExtractor(); //did it to extract types from nodes, extended logic from demo project
 
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
+    }
+
     @Override
     public Void visit(MainClass n, Void arg) {
         String className = n.f1.f0.toString();

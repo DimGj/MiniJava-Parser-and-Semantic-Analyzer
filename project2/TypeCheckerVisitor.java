@@ -494,7 +494,6 @@ public class TypeCheckerVisitor extends GJDepthFirst<String, String> {
     }
 
     private boolean isAssignable(String to, String from) {
-
         if (to.equals(from)) 
             return true;
         if (from.equals("null") && !to.equals("int") && !to.equals("boolean")) 

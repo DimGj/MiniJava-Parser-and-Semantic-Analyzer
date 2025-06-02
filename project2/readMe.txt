@@ -1,15 +1,46 @@
-Run instructions:
-1. make all
-2. java Main [yourTestFile.java]
+BUILD & RUN INSTRUCTIONS
 
-During compilation you will see 2 warning from jtb for 2 deprecated methods of it, i tried resolve thme but i couldnt, i thought they are not really essential warnings.
+1. To compile the project:
+   make all
 
-Notes:
-My program as seen in run instructions supports only one TestFile per run (sorry for extra grading time).
-I decided when it reaches an error semantic or in symbolTable to exit the program with status 1 and do not continue examining the AST.
+2. To run semantic analysis on a test file:
+   java Main [path/yourTestFile.java]
 
-1. On comparison expressions i thought only int should be compared.
-2. While arithmetic must have both int.
-3. If and while can only have boolean conditions (i dont even accept int piazza @90)
-4. && must have both vars as boolean
-5. Print statements can only print int or booleans
+Note: The program supports one test file per run (sorry for extra grading time).
+Please run the command separately for each file, i also have all the tests that were used for check in 'tests' folder.
+
+KNOWN WARNINGS
+
+During compilation, you may see two warnings related to
+deprecated methods from JTB. These are known and do not
+affect the correctness of the program.
+
+SEMANTIC ANALYSIS BEHAVIOR
+
+- On detecting a semantic or symbol table error, the program
+  prints an error message to stderr and exits immediately 
+  with status 1.
+- No further AST traversal is performed after the first error. (i thought it really is not needed)
+
+SEMANTIC RULES IMPLEMENTED
+
+1. Comparison expressions (<, ==, etc.):
+   - Both operands must be of type int.
+
+2. Arithmetic expressions (+, -, *):
+   - Both operands must be of type int.
+
+3. if and while statements:
+   - Condition must be of type boolean (int is not accepted).
+     (See Piazza @90 for clarification)
+
+4. Logical AND (&&):
+   - Both operands must be of type boolean.
+
+5. Print statements (System.out.println(...)):
+   - Only int and boolean types are allowed.
+
+ADDITIONAL NOTES
+
+- All semantic checks are performed in the TypeCheckerVisitor.
+- Symbol table is constructed first using SymbolTableVisitor.
