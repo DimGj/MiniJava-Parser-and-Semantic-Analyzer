@@ -1,6 +1,7 @@
 BUILD & RUN INSTRUCTIONS
 
 1. To compile the project:
+   cd project2
    make all
 
 2. To run semantic analysis on a test file:
@@ -8,6 +9,7 @@ BUILD & RUN INSTRUCTIONS
 
 Note: The program supports one test file per run (sorry for extra grading time).
 Please run the command separately for each file, i also have all the tests that were used for check in 'tests' folder.
+Compilation and tests have been done on WSL and Windows.
 
 KNOWN WARNINGS
 
