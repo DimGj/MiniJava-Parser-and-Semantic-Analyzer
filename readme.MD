@@ -61,7 +61,7 @@ We applied the classic transformation:
 ```
 A → A α | β  becomes:
 A  → β A'
-A' → α A'' | ε
+A' → α A' | ε
 ```
 
 The final grammar used is:
